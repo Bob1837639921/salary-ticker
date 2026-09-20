@@ -33,12 +33,18 @@
       font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
     }
     button, input { font: inherit; }
-    .shell { width: min(1120px, calc(100% - 32px)); margin: 0 auto; padding: 30px 0 48px; }
+    .shell { width: min(920px, calc(100% - 32px)); margin: 0 auto; padding: 30px 0 48px; }
     header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
     .brand { display: flex; align-items: center; gap: 11px; font-weight: 800; letter-spacing: -.02em; }
     .mark { width: 34px; height: 34px; display: grid; place-items: center; border-radius: 10px; background: var(--acid); color: #0b100e; font-size: 1.05rem; }
+    .header-actions { display: flex; align-items: center; gap: 14px; }
     .date { color: var(--muted); font-size: .875rem; }
-    main { display: grid; grid-template-columns: minmax(0, 1.65fr) minmax(300px, .9fr); gap: 18px; align-items: stretch; }
+    .settings-button, .close-button { border: 1px solid var(--line); background: var(--panel); color: var(--text); cursor: pointer; transition: border-color .2s, transform .2s, background .2s; }
+    .settings-button { display: inline-flex; align-items: center; gap: 7px; min-height: 40px; padding: 0 13px; border-radius: 12px; }
+    .settings-button:hover, .close-button:hover { border-color: var(--acid); background: var(--panel-2); }
+    .settings-button:active, .close-button:active { transform: scale(.96); }
+    .settings-button svg { width: 17px; height: 17px; }
+    main { display: grid; gap: 18px; }
     .card { background: linear-gradient(145deg, rgba(23,30,45,.92), rgba(14,19,30,.96)); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: 0 24px 70px rgba(0,0,0,.22); }
     .live { min-height: 560px; padding: clamp(26px, 5vw, 58px); display: flex; flex-direction: column; overflow: hidden; position: relative; }
     .live::after { content: "¥"; position: absolute; right: -20px; bottom: -95px; color: rgba(216,255,79,.035); font-size: 28rem; font-weight: 900; line-height: 1; pointer-events: none; }
@@ -66,8 +72,12 @@
     .per-second { color: var(--muted); margin-top: 6px; font-size: .9rem; }
     .progress-track { height: 5px; margin-top: 18px; max-width: 430px; overflow: hidden; background: rgba(255,255,255,.08); border-radius: 999px; }
     .progress-bar { height: 100%; width: 0; border-radius: inherit; background: linear-gradient(90deg, var(--acid), #7cffc9); transition: width .6s ease; box-shadow: 0 0 16px rgba(216,255,79,.35); }
-    .settings { padding: 25px; display: flex; flex-direction: column; }
-    .settings-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 24px; }
+    .settings-dialog { width: min(440px, calc(100% - 28px)); max-height: min(740px, calc(100vh - 28px)); margin: auto; padding: 0; color: var(--text); background: transparent; border: 0; overflow: visible; }
+    .settings-dialog::backdrop { background: rgba(3,7,13,.72); backdrop-filter: blur(8px); }
+    .settings { padding: 25px; display: flex; flex-direction: column; max-height: min(740px, calc(100vh - 28px)); overflow: auto; }
+    .settings-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+    .settings-title { display: flex; align-items: baseline; gap: 10px; }
+    .close-button { width: 38px; height: 38px; border-radius: 11px; font-size: 1.4rem; line-height: 1; }
     h2 { margin: 0; font-size: 1.12rem; }
     .saved { font-size: .78rem; color: var(--muted); opacity: 0; transition: opacity .2s; }
     .saved.show { opacity: 1; }
@@ -85,17 +95,17 @@
     .rates { margin-top: auto; padding-top: 18px; border-top: 1px solid var(--line); display: grid; gap: 13px; }
     .rate { display: flex; align-items: center; justify-content: space-between; color: var(--muted); font-size: .86rem; }
     .rate strong { color: var(--text); font-size: 1rem; font-variant-numeric: tabular-nums; }
-    .tip { grid-column: 1 / -1; padding: 15px 18px; border-radius: 15px; background: rgba(100,181,255,.08); border: 1px solid rgba(100,181,255,.18); color: #b9d9f5; font-size: .86rem; line-height: 1.55; }
+    .tip { padding: 15px 18px; border-radius: 15px; background: rgba(100,181,255,.08); border: 1px solid rgba(100,181,255,.18); color: #b9d9f5; font-size: .86rem; line-height: 1.55; }
     @media (max-width: 760px) {
       .shell { width: min(100% - 22px, 560px); padding-top: 18px; }
-      main { grid-template-columns: 1fr; }
       .live { min-height: 440px; padding: 28px 24px; }
       .eyebrow { margin-top: 56px; }
       .countdown { font-size: clamp(3.3rem, 17vw, 5.2rem); }
       .mascot-wrap { width: 155px; right: -8px; top: 30px; opacity: .88; }
       .mascot-say { right: 62%; top: 8%; font-size: .7rem; }
-      .settings { min-height: 470px; }
       .date { display: none; }
+      .settings-button span { display: none; }
+      .settings-button { width: 40px; padding: 0; justify-content: center; }
     }
     @media (prefers-reduced-motion: reduce) { .pulse, .mascot-wrap, .coin, .earned { animation: none; } .progress-bar { transition: none; } }
   </style>
@@ -104,7 +114,13 @@
   <div class="shell">
     <header>
       <div class="brand"><span class="mark">¥</span><span>薪跳</span></div>
-      <div class="date" id="dateText"></div>
+      <div class="header-actions">
+        <div class="date" id="dateText"></div>
+        <button class="settings-button" id="openSettings" type="button" aria-haspopup="dialog" aria-controls="settingsDialog">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-2.83 2.83-.06-.06a1.7 1.7 0 0 0-1.88-.34 1.7 1.7 0 0 0-1.03 1.56V21h-4v-.08A1.7 1.7 0 0 0 8.96 19.4a1.7 1.7 0 0 0-1.88.34l-.06.06-2.83-2.83.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.56-1.03H3v-4h.08A1.7 1.7 0 0 0 4.6 8.96a1.7 1.7 0 0 0-.34-1.88l-.06-.06 2.83-2.83.06.06A1.7 1.7 0 0 0 8.96 4.6 1.7 1.7 0 0 0 10 3.08V3h4v.08a1.7 1.7 0 0 0 1.03 1.56 1.7 1.7 0 0 0 1.88-.34l.06-.06 2.83 2.83-.06.06a1.7 1.7 0 0 0-.34 1.88A1.7 1.7 0 0 0 20.92 10H21v4h-.08A1.7 1.7 0 0 0 19.4 15Z"/></svg>
+          <span>设置</span>
+        </button>
+      </div>
     </header>
     <main>
       <section class="card live" aria-live="polite">
@@ -124,8 +140,15 @@
         </div>
       </section>
 
-      <aside class="card settings" aria-label="工资设置">
-        <div class="settings-head"><h2>你的工作设置</h2><span class="saved" id="saved">已保存</span></div>
+      <div class="tip">按月薪 ÷ 每月工作天数 ÷ 每日有效工时估算。休息时间会从工作时长中扣除，结果仅供日常参考。</div>
+    </main>
+
+    <dialog class="settings-dialog" id="settingsDialog" aria-labelledby="settingsTitle">
+      <section class="card settings" aria-label="工资设置">
+        <div class="settings-head">
+          <div class="settings-title"><h2 id="settingsTitle">工作设置</h2><span class="saved" id="saved">已保存</span></div>
+          <button class="close-button" id="closeSettings" type="button" aria-label="关闭设置">×</button>
+        </div>
         <div class="field">
           <label for="salary">税前月薪</label>
           <div class="salary-box"><input id="salary" type="number" min="0" step="100" inputmode="decimal" value="12000" /></div>
@@ -144,9 +167,8 @@
           <div class="rate"><span>每秒</span><strong id="secondRate">¥0.0000</strong></div>
           <div class="rate"><span>今日目标</span><strong id="dayRate">¥0.00</strong></div>
         </div>
-      </aside>
-      <div class="tip">按月薪 ÷ 每月工作天数 ÷ 每日有效工时估算。休息时间会从工作时长中扣除，结果仅供日常参考。</div>
-    </main>
+      </section>
+    </dialog>
   </div>
   <script>
     const $ = (id) => document.getElementById(id);
@@ -245,6 +267,13 @@
       const stored = JSON.parse(localStorage.getItem('salaryTickerSettings'));
       if (stored) for (const key of fields) if (stored[key] !== undefined) $(key).value = stored[key];
     } catch (_) {}
+
+    const settingsDialog = $('settingsDialog');
+    $('openSettings').addEventListener('click', () => settingsDialog.showModal());
+    $('closeSettings').addEventListener('click', () => settingsDialog.close());
+    settingsDialog.addEventListener('click', (event) => {
+      if (event.target === settingsDialog) settingsDialog.close();
+    });
 
     let savedTimer;
     fields.forEach((id) => $(id).addEventListener('input', () => {
