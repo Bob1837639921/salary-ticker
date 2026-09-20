@@ -70,12 +70,8 @@
     .mascot-marker:hover .mascot-stack { transform: translateY(-4px); }
     .mascot-marker:focus-visible { outline: 2px solid var(--blue); outline-offset: 6px; border-radius: 16px; }
     .mascot-stack { display: block; width: 100%; aspect-ratio: 1; position: relative; filter: drop-shadow(0 10px 14px rgba(0,0,0,.36)); transition: transform .2s ease; }
-    .mascot-sprite { display: block; width: 100%; height: 100%; background-image: url('salary-mascot-sprites.png'); background-repeat: no-repeat; background-size: 200% 200%; }
-    .mascot-sprite.frame-idle { background-position: 0 0; }
-    .mascot-sprite.frame-run-a { background-position: 100% 0; }
-    .mascot-sprite.frame-run-b { background-position: 0 100%; }
-    .mascot-sprite.frame-party { background-position: 100% 100%; }
-    .mascot-marker.celebrate .mascot-sprite { animation: mascot-party .5s ease-in-out infinite alternate; }
+    .mascot-walk-frame { display: block; width: 100%; height: 100%; object-fit: contain; }
+    .mascot-marker.celebrate .mascot-walk-frame { animation: mascot-party .5s ease-in-out infinite alternate; }
     .coin { position: absolute; color: var(--acid); font-weight: 900; font-size: .82rem; opacity: 0; pointer-events: none; }
     .coin.c1 { left: 5%; top: 18%; }
     .coin.c2 { right: 4%; top: 42%; }
@@ -121,7 +117,7 @@
       .settings-button span { display: none; }
       .settings-button { width: 40px; padding: 0; justify-content: center; }
     }
-    @media (prefers-reduced-motion: reduce) { .pulse, .mascot-sprite, .coin, .earned { animation: none !important; } .progress-bar, .mascot-marker { transition: none; } }
+    @media (prefers-reduced-motion: reduce) { .pulse, .mascot-walk-frame, .coin, .earned { animation: none !important; } .progress-bar, .mascot-marker { transition: none; } }
   </style>
 </head>
 <body>
@@ -152,7 +148,7 @@
               <button class="mascot-marker" id="mascotMarker" type="button" aria-label="查看今日工作进度详情">
                 <span class="coin c1">+¥</span><span class="coin c2">+¥</span><span class="coin c3">+¥</span>
                 <span class="mascot-stack" aria-hidden="true">
-                  <span class="mascot-sprite frame-idle" id="mascotSprite"></span>
+                  <img class="mascot-walk-frame" id="mascotWalkFrame" src="mascot-walk-1.png" alt="" />
                 </span>
               </button>
             </div>
@@ -244,6 +240,21 @@
 
     let mascotMode = 0;
     let latestResult = null;
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const walkFrames = Array.from({ length: 6 }, (_, index) => `mascot-walk-${index + 1}.png`);
+    let walkFrameIndex = 0;
+    let walkFramesReady = false;
+    Promise.all(walkFrames.map((src) => new Promise((resolve) => {
+      const image = new Image();
+      image.onload = image.onerror = resolve;
+      image.src = src;
+    }))).then(() => { walkFramesReady = true; });
+
+    function advanceWalkFrame() {
+      if (!latestResult || latestResult.state !== 'working' || reduceMotion || !walkFramesReady) return;
+      walkFrameIndex = (walkFrameIndex + 1) % walkFrames.length;
+      $('mascotWalkFrame').src = walkFrames[walkFrameIndex];
+    }
 
     function mascotMessage(result) {
       if (mascotMode === 1) return `已赚 ${currency.format(result.earned)}`;
@@ -273,8 +284,8 @@
       $('mascotMarker').style.left = `${Math.max(7, Math.min(93, result.progress * 100))}%`;
       $('mascotMarker').classList.toggle('walking', result.state === 'working');
       $('mascotMarker').classList.toggle('celebrate', result.state === 'after');
-      const mascotFrame = result.state === 'before' ? 'idle' : result.state === 'after' ? 'party' : (Math.floor(now.getTime() / 450) % 2 ? 'run-a' : 'run-b');
-      $('mascotSprite').className = `mascot-sprite frame-${mascotFrame}`;
+      if (result.state === 'before') $('mascotWalkFrame').src = walkFrames[0];
+      if (result.state === 'after') $('mascotWalkFrame').src = walkFrames[5];
       $('mascotSay').textContent = mascotMessage(result);
 
       if (result.state === 'before') {
@@ -367,6 +378,7 @@
     }
 
     render();
+    setInterval(advanceWalkFrame, 120);
     setInterval(render, 250);
   </script>
 </body>
