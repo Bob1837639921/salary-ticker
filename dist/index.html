@@ -59,22 +59,23 @@
     .earned { color: var(--acid); font-size: clamp(2.1rem, 5vw, 4rem); font-weight: 800; letter-spacing: -.04em; font-variant-numeric: tabular-nums; animation: money-glow 2.2s ease-in-out infinite; }
     @keyframes money-glow { 50% { text-shadow: 0 0 22px rgba(216,255,79,.2); } }
     .per-second { color: var(--muted); margin-top: 6px; font-size: .9rem; }
-    .journey { margin-top: 34px; width: min(100%, 620px); position: relative; padding-top: 72px; }
-    .journey-labels { display: flex; justify-content: space-between; color: var(--muted); font-size: .78rem; margin-top: 10px; }
+    .journey { margin-top: 28px; width: min(100%, 620px); position: relative; padding-top: 74px; }
+    .journey-head { position: absolute; inset: 0 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .journey-title { color: var(--muted); font-size: .78rem; }
+    .mascot-readout { color: #0b100e; background: var(--acid); padding: 7px 11px; border-radius: 10px; font-weight: 800; font-size: .74rem; box-shadow: 0 8px 24px rgba(0,0,0,.18); white-space: nowrap; }
+    .journey-labels { display: flex; justify-content: space-between; color: var(--muted); font-size: .78rem; margin-top: 46px; }
     .progress-track { height: 7px; overflow: visible; background: rgba(255,255,255,.08); border-radius: 999px; position: relative; }
     .progress-bar { height: 100%; width: 0; border-radius: inherit; background: linear-gradient(90deg, var(--acid), #7cffc9); transition: width .6s ease; box-shadow: 0 0 16px rgba(216,255,79,.35); }
     .mascot-marker { position: absolute; left: 8%; bottom: -7px; width: 86px; padding: 0; border: 0; background: none; cursor: pointer; transform: translate(-50%, 0); transition: left .7s ease; z-index: 3; }
     .mascot-marker:hover .mascot-stack { transform: translateY(-4px); }
     .mascot-marker:focus-visible { outline: 2px solid var(--blue); outline-offset: 6px; border-radius: 16px; }
     .mascot-stack { display: block; width: 100%; aspect-ratio: 1; position: relative; filter: drop-shadow(0 10px 14px rgba(0,0,0,.36)); transition: transform .2s ease; }
-    .mascot-frame { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; opacity: 0; }
-    .mascot-idle { opacity: 1; }
-    .mascot-marker.walking .mascot-idle { opacity: 0; }
-    .mascot-marker.walking .mascot-run-a { animation: frame-a .7s steps(1,end) infinite; }
-    .mascot-marker.walking .mascot-run-b { animation: frame-b .7s steps(1,end) infinite; }
-    .mascot-marker.celebrate .mascot-idle { opacity: 0; }
-    .mascot-marker.celebrate .mascot-party { opacity: 1; animation: mascot-party .5s ease-in-out infinite alternate; }
-    .mascot-say { position: absolute; left: 50%; bottom: 76%; translate: -50% 0; white-space: nowrap; color: #0b100e; background: var(--acid); padding: 7px 10px; border-radius: 10px 10px 10px 2px; font-weight: 800; font-size: .74rem; box-shadow: 0 8px 24px rgba(0,0,0,.2); }
+    .mascot-sprite { display: block; width: 100%; height: 100%; background-image: url('salary-mascot-sprites.png'); background-repeat: no-repeat; background-size: 200% 200%; }
+    .mascot-sprite.frame-idle { background-position: 0 0; }
+    .mascot-sprite.frame-run-a { background-position: 100% 0; }
+    .mascot-sprite.frame-run-b { background-position: 0 100%; }
+    .mascot-sprite.frame-party { background-position: 100% 100%; }
+    .mascot-marker.celebrate .mascot-sprite { animation: mascot-party .5s ease-in-out infinite alternate; }
     .coin { position: absolute; color: var(--acid); font-weight: 900; font-size: .82rem; opacity: 0; pointer-events: none; }
     .coin.c1 { left: 5%; top: 18%; }
     .coin.c2 { right: 4%; top: 42%; }
@@ -82,8 +83,6 @@
     .mascot-marker.reacting .coin { animation: coin-pop .75s ease-out; }
     .mascot-marker.reacting .coin.c2 { animation-delay: .08s; }
     .mascot-marker.reacting .coin.c3 { animation-delay: .16s; }
-    @keyframes frame-a { 0%,49% { opacity: 1; transform: translateY(0); } 50%,100% { opacity: 0; transform: translateY(-3px); } }
-    @keyframes frame-b { 0%,49% { opacity: 0; transform: translateY(-3px); } 50%,100% { opacity: 1; transform: translateY(0); } }
     @keyframes mascot-party { from { transform: translateY(0) rotate(-5deg) scale(1); } to { transform: translateY(-7px) rotate(5deg) scale(1.05); } }
     @keyframes coin-pop { 0% { transform: translateY(5px) scale(.7); opacity: 0; } 35% { opacity: 1; } 100% { transform: translateY(-28px) scale(1.15); opacity: 0; } }
     .settings-dialog { width: min(440px, calc(100% - 28px)); max-height: min(740px, calc(100vh - 28px)); margin: auto; padding: 0; color: var(--text); background: transparent; border: 0; overflow: visible; }
@@ -115,14 +114,14 @@
       .live { min-height: 440px; padding: 28px 24px; }
       .eyebrow { margin-top: 56px; }
       .countdown { font-size: clamp(3.3rem, 17vw, 5.2rem); }
-      .journey { padding-top: 62px; margin-top: 28px; }
+      .journey { padding-top: 68px; margin-top: 24px; }
       .mascot-marker { width: 74px; }
-      .mascot-say { font-size: .68rem; bottom: 74%; }
+      .mascot-readout { font-size: .68rem; }
       .date { display: none; }
       .settings-button span { display: none; }
       .settings-button { width: 40px; padding: 0; justify-content: center; }
     }
-    @media (prefers-reduced-motion: reduce) { .pulse, .mascot-frame, .coin, .earned { animation: none !important; } .mascot-marker.walking .mascot-run-a { opacity: 1; } .mascot-marker.walking .mascot-run-b { opacity: 0; } .progress-bar, .mascot-marker { transition: none; } }
+    @media (prefers-reduced-motion: reduce) { .pulse, .mascot-sprite, .coin, .earned { animation: none !important; } .progress-bar, .mascot-marker { transition: none; } }
   </style>
 </head>
 <body>
@@ -147,16 +146,13 @@
           <div class="earned" id="earned">¥0.00</div>
           <div class="per-second" id="perSecondText">每一秒都算数</div>
           <div class="journey" aria-label="今日工作进度">
+            <div class="journey-head"><span class="journey-title">牛马下班路线</span><strong class="mascot-readout" id="mascotSay">向下班前进</strong></div>
             <div class="progress-track">
               <div class="progress-bar" id="progressBar"></div>
               <button class="mascot-marker" id="mascotMarker" type="button" aria-label="查看今日工作进度详情">
-                <span class="mascot-say" id="mascotSay">点击看进度</span>
                 <span class="coin c1">+¥</span><span class="coin c2">+¥</span><span class="coin c3">+¥</span>
                 <span class="mascot-stack" aria-hidden="true">
-                  <img class="mascot-frame mascot-idle" src="salary-mascot-idle.png" alt="" />
-                  <img class="mascot-frame mascot-run-a" src="salary-mascot.png" alt="" />
-                  <img class="mascot-frame mascot-run-b" src="salary-mascot-run-b.png" alt="" />
-                  <img class="mascot-frame mascot-party" src="salary-mascot-party.png" alt="" />
+                  <span class="mascot-sprite frame-idle" id="mascotSprite"></span>
                 </span>
               </button>
             </div>
@@ -277,6 +273,8 @@
       $('mascotMarker').style.left = `${Math.max(7, Math.min(93, result.progress * 100))}%`;
       $('mascotMarker').classList.toggle('walking', result.state === 'working');
       $('mascotMarker').classList.toggle('celebrate', result.state === 'after');
+      const mascotFrame = result.state === 'before' ? 'idle' : result.state === 'after' ? 'party' : (Math.floor(now.getTime() / 450) % 2 ? 'run-a' : 'run-b');
+      $('mascotSprite').className = `mascot-sprite frame-${mascotFrame}`;
       $('mascotSay').textContent = mascotMessage(result);
 
       if (result.state === 'before') {
