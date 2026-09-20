@@ -32,7 +32,7 @@
       color: var(--text);
       font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
     }
-    button, input { font: inherit; }
+    button, input, select { font: inherit; }
     .shell { width: min(920px, calc(100% - 32px)); margin: 0 auto; padding: 30px 0 48px; }
     header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
     .brand { display: flex; align-items: center; gap: 11px; font-weight: 800; letter-spacing: -.02em; }
@@ -92,11 +92,12 @@
     .saved.show { opacity: 1; }
     .field { margin-bottom: 17px; }
     label { display: block; color: #c4cbd6; font-size: .875rem; margin-bottom: 8px; }
-    input {
+    input, select {
       width: 100%; border: 1px solid var(--line); background: #0d1320; color: var(--text);
       border-radius: 13px; padding: 13px 14px; outline: none; min-height: 48px;
     }
-    input:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(100,181,255,.12); }
+    input:focus, select:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(100,181,255,.12); }
+    select { cursor: pointer; }
     .two { display: grid; grid-template-columns: 1fr 1fr; gap: 11px; }
     .salary-box { position: relative; }
     .salary-box::before { content: "¥"; position: absolute; left: 14px; top: 13px; color: var(--muted); z-index: 1; }
@@ -157,7 +158,7 @@
         </div>
       </section>
 
-      <div class="tip">按月薪 ÷ 每月工作天数 ÷ 每日有效工时估算。休息时间会从工作时长中扣除，结果仅供日常参考。</div>
+      <div class="tip">系统会根据当前月份和排班方式自动计算工作天数，再估算每天、每小时和每秒收入。结果仅供日常参考。</div>
     </main>
 
     <dialog class="settings-dialog" id="settingsDialog" aria-labelledby="settingsTitle">
@@ -174,11 +175,16 @@
           <div class="field"><label for="start">上班时间</label><input id="start" type="time" value="09:00" /></div>
           <div class="field"><label for="end">下班时间</label><input id="end" type="time" value="18:00" /></div>
         </div>
-        <div class="two">
-          <div class="field"><label for="days">每月工作天数</label><input id="days" type="number" min="1" max="31" step="0.25" value="21.75" /></div>
-          <div class="field"><label for="breakMinutes">每日休息（分钟）</label><input id="breakMinutes" type="number" min="0" step="5" value="60" /></div>
+        <div class="field">
+          <label for="schedule">排班方式</label>
+          <select id="schedule">
+            <option value="double">双休（周六、周日休）</option>
+            <option value="single">单休（周日休）</option>
+            <option value="none">无休</option>
+          </select>
         </div>
         <div class="rates">
+          <div class="rate"><span>本月工作天数</span><strong id="workdaysCount">0 天</strong></div>
           <div class="rate"><span>每小时</span><strong id="hourRate">¥0.00</strong></div>
           <div class="rate"><span>每分钟</span><strong id="minuteRate">¥0.00</strong></div>
           <div class="rate"><span>每秒</span><strong id="secondRate">¥0.0000</strong></div>
@@ -189,8 +195,8 @@
   </div>
   <script>
     const $ = (id) => document.getElementById(id);
-    const fields = ['salary', 'start', 'end', 'days', 'breakMinutes'];
-    const defaults = { salary: 12000, start: '09:00', end: '18:00', days: 21.75, breakMinutes: 60 };
+    const fields = ['salary', 'start', 'end', 'schedule'];
+    const defaults = { salary: 12000, start: '09:00', end: '18:00', schedule: 'double' };
     const currency = new Intl.NumberFormat('zh-CN', { style: 'currency', currency: 'CNY', minimumFractionDigits: 2 });
 
     function readSettings() {
@@ -198,8 +204,7 @@
         salary: Math.max(0, Number($('salary').value) || 0),
         start: $('start').value || defaults.start,
         end: $('end').value || defaults.end,
-        days: Math.max(1, Number($('days').value) || defaults.days),
-        breakMinutes: Math.max(0, Number($('breakMinutes').value) || 0)
+        schedule: ['double', 'single', 'none'].includes($('schedule').value) ? $('schedule').value : defaults.schedule
       };
     }
 
@@ -218,24 +223,44 @@
       return `${h}:${m}:${s}`;
     }
 
+    function isWorkday(date, schedule) {
+      const weekday = date.getDay();
+      if (schedule === 'none') return true;
+      if (schedule === 'single') return weekday !== 0;
+      return weekday !== 0 && weekday !== 6;
+    }
+
+    function countMonthWorkdays(date, schedule) {
+      const year = date.getFullYear();
+      const month = date.getMonth();
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+      let count = 0;
+      for (let day = 1; day <= daysInMonth; day += 1) {
+        if (isWorkday(new Date(year, month, day), schedule)) count += 1;
+      }
+      return count;
+    }
+
     function calculate(settings, now = new Date()) {
       let start = timeOn(now, settings.start);
       let end = timeOn(now, settings.end);
       if (end <= start) end.setDate(end.getDate() + 1);
       if (now.getHours() < 6 && end.getDate() !== start.getDate()) start.setDate(start.getDate() - 1);
 
-      const totalSeconds = Math.max(60, (end - start) / 1000 - settings.breakMinutes * 60);
-      const dayRate = settings.salary / settings.days;
+      const workdays = countMonthWorkdays(now, settings.schedule);
+      const totalSeconds = Math.max(60, (end - start) / 1000);
+      const dayRate = settings.salary / Math.max(1, workdays);
       const secondRate = dayRate / totalSeconds;
       let state = 'working';
       let remaining = end - now;
       let elapsedSeconds = Math.max(0, (now - start) / 1000);
 
-      if (now < start) { state = 'before'; remaining = start - now; elapsedSeconds = 0; }
-      if (now >= end) { state = 'after'; remaining = 0; elapsedSeconds = totalSeconds; }
+      if (!isWorkday(start, settings.schedule)) { state = 'off'; remaining = 0; elapsedSeconds = 0; }
+      else if (now < start) { state = 'before'; remaining = start - now; elapsedSeconds = 0; }
+      else if (now >= end) { state = 'after'; remaining = 0; elapsedSeconds = totalSeconds; }
       const shiftSeconds = Math.max(60, (end - start) / 1000);
       const progress = state === 'after' ? 1 : Math.min(1, Math.max(0, elapsedSeconds / shiftSeconds));
-      return { state, remaining, earned: dayRate * progress, progress, dayRate, secondRate, totalSeconds };
+      return { state, remaining, earned: dayRate * progress, progress, dayRate, secondRate, totalSeconds, workdays };
     }
 
     let mascotMode = 0;
@@ -257,6 +282,7 @@
     }
 
     function mascotMessage(result) {
+      if (result.state === 'off') return '今天歇一歇';
       if (mascotMode === 1) return `已赚 ${currency.format(result.earned)}`;
       if (mascotMode === 2) return result.state === 'after' ? '今天完成啦' : `还剩 ${formatDuration(result.remaining)}`;
       if (mascotMode === 3) return `今日进度 ${Math.round(result.progress * 100)}%`;
@@ -273,6 +299,7 @@
       const result = calculate(settings, now);
       latestResult = result;
       $('dateText').textContent = new Intl.DateTimeFormat('zh-CN', { month: 'long', day: 'numeric', weekday: 'long' }).format(now);
+      $('workdaysCount').textContent = `${result.workdays} 天`;
       $('dayRate').textContent = currency.format(result.dayRate);
       $('hourRate').textContent = currency.format(result.secondRate * 3600);
       $('minuteRate').textContent = currency.format(result.secondRate * 60);
@@ -284,11 +311,17 @@
       $('mascotMarker').style.left = `${Math.max(7, Math.min(93, result.progress * 100))}%`;
       $('mascotMarker').classList.toggle('walking', result.state === 'working');
       $('mascotMarker').classList.toggle('celebrate', result.state === 'after');
-      if (result.state === 'before') $('mascotWalkFrame').src = walkFrames[0];
+      if (result.state === 'before' || result.state === 'off') $('mascotWalkFrame').src = walkFrames[0];
       if (result.state === 'after') $('mascotWalkFrame').src = walkFrames[5];
       $('mascotSay').textContent = mascotMessage(result);
 
-      if (result.state === 'before') {
+      if (result.state === 'off') {
+        $('statusText').textContent = '今天休息';
+        $('countdownLabel').textContent = '不用打卡';
+        $('countdown').innerHTML = '休息日<span>☕</span>';
+        $('earnedLabel').textContent = '今日收入';
+        $('perSecondText').textContent = '休息日不计时';
+      } else if (result.state === 'before') {
         $('statusText').textContent = '等待上班';
         $('countdownLabel').textContent = '距离上班还有';
         $('countdown').textContent = formatDuration(result.remaining);
@@ -351,15 +384,14 @@
         Promise.resolve(context.registerTool({
           name: 'configure_salary_timer',
           title: '设置工资计时器',
-          description: '设置月薪、上下班时间、每月工作天数和每日休息分钟数，并更新页面上的实时收入。',
+          description: '设置月薪、上下班时间和排班方式，并按当前月份自动计算工作天数与实时收入。',
           inputSchema: {
             type: 'object',
             properties: {
               salary: { type: 'number', minimum: 0 },
               start: { type: 'string', pattern: '^([01]\\d|2[0-3]):[0-5]\\d$' },
               end: { type: 'string', pattern: '^([01]\\d|2[0-3]):[0-5]\\d$' },
-              days: { type: 'number', minimum: 1, maximum: 31 },
-              breakMinutes: { type: 'number', minimum: 0, maximum: 1440 }
+              schedule: { type: 'string', enum: ['double', 'single', 'none'] }
             },
             additionalProperties: false
           },
@@ -367,8 +399,7 @@
           execute(input) {
             if (!input || typeof input !== 'object') throw new Error('请输入有效的设置');
             if (input.salary !== undefined && (!Number.isFinite(input.salary) || input.salary < 0)) throw new Error('月薪不能小于 0');
-            if (input.days !== undefined && (!Number.isFinite(input.days) || input.days < 1 || input.days > 31)) throw new Error('每月工作天数应在 1 到 31 之间');
-            if (input.breakMinutes !== undefined && (!Number.isFinite(input.breakMinutes) || input.breakMinutes < 0 || input.breakMinutes > 1440)) throw new Error('休息时间应在 0 到 1440 分钟之间');
+            if (input.schedule !== undefined && !['double', 'single', 'none'].includes(input.schedule)) throw new Error('排班方式应为双休、单休或无休');
             if (input.start !== undefined && !/^([01]\d|2[0-3]):[0-5]\d$/.test(input.start)) throw new Error('上班时间格式应为 HH:mm');
             if (input.end !== undefined && !/^([01]\d|2[0-3]):[0-5]\d$/.test(input.end)) throw new Error('下班时间格式应为 HH:mm');
             return applySettings(input);
