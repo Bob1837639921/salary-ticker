@@ -1,0 +1,9 @@
+# Local packaging and visual QA outputs
+/package-staging/
+/salary-ticker-site*.tar.gz
+/design-qa*.jpg
+/design-qa.md
+
+# Python cache
+__pycache__/
+*.pyc

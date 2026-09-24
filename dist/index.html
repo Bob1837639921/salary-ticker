@@ -3,414 +3,215 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#090d16" />
+  <meta name="theme-color" content="#07111f" />
   <meta name="description" content="输入月薪和工作时间，实时查看下班倒计时与每秒收入。" />
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23090d16'/%3E%3Ccircle cx='16' cy='16' r='10' fill='none' stroke='%23d8ff4f' stroke-width='3'/%3E%3Cpath d='M16 9v7l5 3' fill='none' stroke='%23d8ff4f' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E" />
+  <link rel="icon" type="image/png" href="bull-mark.png" />
   <title>薪跳 · 工资计时器</title>
   <style>
-    :root {
-      color-scheme: dark;
-      --bg: #090d16;
-      --panel: #111724;
-      --panel-2: #171e2d;
-      --line: #2b3445;
-      --text: #f5f7fb;
-      --muted: #8d98aa;
-      --acid: #d8ff4f;
-      --blue: #64b5ff;
-      --danger: #ff8b8b;
-      --radius: 22px;
+    :root { color-scheme: dark; --bg:#07111f; --panel:#101a2a; --line:rgba(210,229,255,.16); --line-strong:rgba(224,239,255,.34); --text:#f8fbff; --muted:#9cabc0; --acid:#d7ff3f; --blue:#77bfff; --danger:#ff9a84; --radius:22px; }
+    * { box-sizing:border-box; }
+    html { min-width:320px; background:var(--bg); }
+    body { margin:0; min-height:100vh; overflow-x:hidden; background:var(--bg) url("office-night-dynamic-v4.png") center/cover fixed no-repeat; color:var(--text); font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif; }
+    body::before { content:""; position:fixed; inset:0; z-index:-1; background:rgba(2,8,17,.22); pointer-events:none; }
+    .scene-lettering { position:fixed; inset:0; width:100%; height:100%; z-index:0; pointer-events:none; }
+    .sr-only { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
+    button,input,select { font:inherit; }
+    button { -webkit-tap-highlight-color:transparent; }
+    .shell { position:relative; z-index:1; width:min(1440px,100%); min-height:100vh; margin:0 auto; padding:32px clamp(28px,4vw,64px) 34px; display:grid; grid-template-rows:auto 1fr auto; }
+    header { display:flex; align-items:center; justify-content:space-between; gap:24px; }
+    .brand { display:flex; align-items:center; gap:14px; font-weight:850; font-size:1.55rem; letter-spacing:-.05em; }
+    .mark { width:48px; height:48px; display:grid; place-items:center; overflow:hidden; border-radius:14px; box-shadow:0 0 30px rgba(215,255,63,.16); }
+    .mark img { width:100%; height:100%; object-fit:cover; display:block; }
+    .header-actions { display:flex; align-items:center; gap:18px; }
+    .date { color:#c4d0e0; font-size:.94rem; font-weight:600; }
+    .settings-button,.close-button { border:1px solid var(--line); background:rgba(8,17,31,.74); color:var(--text); cursor:pointer; transition:border-color .2s ease,transform .2s ease,background-color .2s ease; }
+    .settings-button { display:inline-flex; align-items:center; min-height:42px; padding:0 16px; border-radius:14px; font-weight:700; }
+    .settings-button:hover,.close-button:hover { border-color:var(--acid); background:rgba(19,31,46,.92); }
+    .settings-button:active,.close-button:active { transform:scale(.96); }
+    .settings-button:focus-visible,.close-button:focus-visible,.mascot-marker:focus-visible { outline:3px solid var(--blue); outline-offset:4px; }
+    main { display:grid; align-items:stretch; min-height:0; }
+    .live { position:relative; padding:24px 0 18px; min-height:650px; display:grid; grid-template-rows:1fr auto; }
+    .hero { width:min(800px,66vw); align-self:start; padding-top:45px; padding-bottom:42px; }
+    .status { display:inline-flex; align-items:center; gap:11px; color:var(--acid); font-size:1rem; font-weight:800; letter-spacing:.04em; }
+    .pulse { width:10px; height:10px; border-radius:50%; background:currentColor; box-shadow:0 0 22px rgba(215,255,63,.8); animation:pulse 1.7s infinite; }
+    @keyframes pulse { 70% { box-shadow:0 0 0 11px rgba(215,255,63,0); } }
+    .eyebrow { margin:52px 0 10px; color:#becada; font-size:clamp(1rem,1.5vw,1.35rem); font-weight:540; }
+    .countdown { margin:0; color:#fff; font-variant-numeric:tabular-nums; font-size:clamp(4.2rem,12vw,11rem); line-height:.9; letter-spacing:-.075em; font-weight:880; text-shadow:0 8px 38px rgba(0,0,0,.28); }
+    .countdown span { color:var(--muted); font-size:.19em; letter-spacing:0; margin-left:.35em; font-weight:700; }
+    .earning-block { margin-top:34px; display:block; }
+    .earned-label { color:#becada; font-size:1rem; margin-bottom:3px; }
+    .earned { color:var(--acid); font-size:clamp(3rem,6.1vw,6rem); line-height:.95; font-weight:860; letter-spacing:-.055em; font-variant-numeric:tabular-nums; text-shadow:0 0 26px rgba(215,255,63,.15); }
+    .per-second { color:#c6d1df; font-size:1rem; padding-top:10px; white-space:nowrap; }
+    .per-second strong { color:var(--acid); }
+    .journey { position:relative; width:100%; padding:68px 34px 0; margin-bottom:85px; }
+    .progress-track { height:40px; position:relative; display:flex; align-items:center; }
+    .track-line { position:absolute; left:0; right:0; height:36px; border:1px solid rgba(192,216,255,.28); border-radius:13px; background:rgba(21,31,48,.8); box-shadow:inset 0 1px 2px rgba(0,0,0,.45),0 7px 22px rgba(0,0,0,.35); overflow:hidden; }
+    .progress-bar { height:100%; width:0; border-radius:11px 0 0 11px; background:linear-gradient(90deg,#d8ff3e,#b6ff42); box-shadow:0 0 26px rgba(215,255,63,.75); transition:width .7s cubic-bezier(.2,.8,.2,1); }
+    .track-ticks { position:absolute; left:0; right:0; top:19px; height:2px; z-index:1; opacity:.7; background:repeating-linear-gradient(90deg,transparent 0 27px,rgba(235,244,255,.64) 28px 52px,transparent 53px 73px); pointer-events:none; transition:left .7s cubic-bezier(.2,.8,.2,1); }
+    .progress-track:has(.mascot-marker.walking) .track-ticks { animation:road-flow .75s linear infinite; }
+    @keyframes road-flow { to { background-position:-73px 0; } }
+    .start-callout { position:absolute; left:0; bottom:53px; min-width:74px; padding:9px 11px; border:1px solid rgba(201,223,255,.26); border-radius:12px; background:rgba(16,29,46,.88); color:#f4f8ff; box-shadow:0 8px 22px rgba(0,0,0,.24); text-align:center; font-size:.82rem; font-weight:700; line-height:1.4; }
+    .start-callout span { display:block; color:#cbd9eb; font-size:.76rem; }
+    .track-point { position:absolute; top:50%; width:18px; height:18px; border:3px solid #fff; border-radius:50%; background:var(--acid); box-shadow:0 0 0 5px rgba(215,255,63,.12),0 0 18px rgba(215,255,63,.55); transform:translate(-50%,-50%); z-index:2; }
+    .track-point.finish { left:100%; background:var(--acid); box-shadow:0 0 0 5px rgba(215,255,63,.12),0 0 18px rgba(215,255,63,.55); }
+    .finish-flag { position:absolute; left:calc(100% - 28px); bottom:5px; width:118px; height:118px; object-fit:contain; pointer-events:none; filter:drop-shadow(0 8px 14px rgba(0,0,0,.35)); }
+    .mascot-marker { position:absolute; left:8%; bottom:13px; width:clamp(170px,16vw,230px); height:184px; padding:0; border:0; background:transparent; cursor:pointer; transform:translateX(-48%); transition:left .7s cubic-bezier(.2,.8,.2,1); z-index:4; }
+    .mascot-trail { position:absolute; left:-82px; bottom:1px; width:165px; height:82px; object-fit:contain; opacity:0; pointer-events:none; }
+    .mascot-marker.walking .mascot-trail { opacity:.42; animation:trail-drift .5s ease-in-out infinite alternate; }
+    @keyframes trail-drift { from { transform:translateX(0) scale(.94); opacity:.28; } to { transform:translateX(-9px) scale(1); opacity:.48; } }
+    .mascot-stack { display:block; position:relative; z-index:1; width:100%; height:100%; transition:transform .2s ease; filter:drop-shadow(0 14px 11px rgba(0,0,0,.46)); }
+    .mascot-marker:hover .mascot-stack { transform:translateY(-5px) scale(1.03); }
+    .mascot-walk-frame { width:100%; height:100%; object-fit:contain; display:block; }
+    .mascot-marker.celebrate .mascot-stack { animation:celebrate .48s ease-in-out infinite alternate; }
+    @keyframes celebrate { from { transform:translateY(0) rotate(-4deg); } to { transform:translateY(-10px) rotate(4deg); } }
+    .progress-readout { position:absolute; left:50%!important; top:-26px; transform:translateX(-50%); padding:7px 12px; border-radius:10px; background:rgba(7,17,31,.92); border:1px solid var(--line-strong); color:var(--text); font-size:.82rem; font-weight:760; white-space:nowrap; }
+    .progress-readout strong { color:var(--acid); margin-left:4px; }
+    .journey-labels { position:relative; display:flex; justify-content:flex-end; align-items:start; margin-top:29px; color:#d8e1ec; font-size:.83rem; font-weight:650; }
+    .journey-labels span:first-child { display:none; }
+    .journey-labels span { display:grid; gap:4px; }
+    .journey-labels span:last-child { text-align:center; transform:translateX(50%); }
+    .journey-labels small { color:var(--muted); font-size:.76rem; font-weight:600; }
+    .mascot-note { position:absolute; left:50%; bottom:78px; transform:translateX(-50%) translateY(8px); min-width:150px; padding:10px 14px; border-radius:12px; border:1px solid rgba(215,255,63,.34); background:rgba(7,17,31,.94); color:var(--acid); font-weight:760; font-size:.78rem; text-align:center; opacity:0; pointer-events:none; transition:opacity .18s ease,transform .18s ease; }
+    .mascot-marker.reacting .mascot-note { opacity:1; transform:translateX(-50%) translateY(0); }
+    .footnote { justify-self:center; margin-top:6px; color:rgba(210,222,237,.68); font-size:.78rem; text-align:center; }
+    .settings-dialog { width:min(450px,calc(100% - 28px)); max-height:min(760px,calc(100vh - 28px)); margin:auto; padding:0; color:var(--text); background:transparent; border:0; overflow:visible; }
+    .settings-dialog::backdrop { background:rgba(2,7,14,.72); backdrop-filter:blur(12px); }
+    .settings { padding:26px; display:flex; flex-direction:column; max-height:min(760px,calc(100vh - 28px)); overflow:auto; background:rgba(12,22,37,.98); border:1px solid var(--line-strong); border-radius:var(--radius); box-shadow:0 26px 90px rgba(0,0,0,.5); }
+    .settings-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:24px; }
+    .settings-title { display:flex; align-items:baseline; gap:10px; }
+    .close-button { width:40px; height:40px; border-radius:12px; font-size:1.45rem; line-height:1; }
+    h2 { margin:0; font-size:1.15rem; }
+    .saved { font-size:.78rem; color:var(--acid); opacity:0; transition:opacity .2s; }
+    .saved.show { opacity:1; }
+    .field { margin-bottom:17px; }
+    label { display:block; color:#cad4e1; font-size:.875rem; margin-bottom:8px; }
+    input,select { width:100%; border:1px solid var(--line); background:#07111f; color:var(--text); border-radius:13px; padding:13px 14px; outline:none; min-height:48px; }
+    input:focus,select:focus { border-color:var(--blue); box-shadow:0 0 0 3px rgba(119,191,255,.12); }
+    select { cursor:pointer; }
+    .two { display:grid; grid-template-columns:1fr 1fr; gap:11px; }
+    .salary-box { position:relative; }
+    .salary-box::before { content:"¥"; position:absolute; left:14px; top:13px; color:var(--muted); z-index:1; }
+    .salary-box input { padding-left:32px; }
+    .rates { margin-top:auto; padding-top:18px; border-top:1px solid var(--line); display:grid; gap:13px; }
+    .rate { display:flex; align-items:center; justify-content:space-between; color:var(--muted); font-size:.86rem; }
+    .rate strong { color:var(--text); font-size:1rem; font-variant-numeric:tabular-nums; }
+    @media (max-width:1100px) { .finish-flag { width:92px; height:92px; left:calc(100% - 22px); bottom:7px; } }
+    @media (max-width:900px) { body { background-position:60% center; } body::before { background:rgba(2,8,17,.48); } .shell { padding-inline:24px; } .live { min-height:620px; } .hero { width:min(100%,680px); padding-top:48px; padding-bottom:34px; } .eyebrow { margin-top:42px; } .journey { padding-inline:18px; margin-bottom:42px; } }
+    @media (min-width:621px) and (max-height:800px) {
+      .shell { padding-top:18px; padding-bottom:14px; }
+      .live { min-height:0; padding-top:6px; padding-bottom:2px; }
+      .hero { padding-top:10px; padding-bottom:0; }
+      .eyebrow { margin-top:24px; }
+      .earning-block { margin-top:16px; }
+      .journey { padding-top:48px; margin-bottom:12px; }
     }
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      min-height: 100vh;
-      background:
-        radial-gradient(circle at 82% 8%, rgba(100,181,255,.12), transparent 30%),
-        radial-gradient(circle at 12% 90%, rgba(216,255,79,.08), transparent 28%),
-        var(--bg);
-      color: var(--text);
-      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    @media (max-width:620px) { body { background-position:67% center; background-attachment:scroll; } body::before { background:rgba(2,8,17,.66); } .shell { padding:18px 16px 22px; } .brand { font-size:1.25rem; gap:10px; } .mark { width:40px; height:40px; border-radius:12px; } .date { display:none; } .settings-button { min-height:40px; padding:0 13px; } .live { min-height:calc(100vh - 118px); padding-top:26px; } .hero { width:100%; padding-top:24px; padding-bottom:18px; } .status { font-size:.88rem; } .eyebrow { margin-top:38px; font-size:.94rem; } .journey { padding:78px 40px 0 7px; } .mascot-marker { width:102px; height:94px; bottom:14px; } .mascot-trail { left:-42px; bottom:0; width:100px; height:50px; } .finish-flag { width:92px; height:92px; left:calc(100% - 22px); bottom:7px; } .start-callout { display:none; } .progress-readout { top:43px; font-size:.72rem; } .journey-labels { justify-content:space-between; margin-top:27px; } .journey-labels span:first-child { display:grid; } .footnote { font-size:.68rem; max-width:90%; } .two { grid-template-columns:1fr; gap:0; } }
+    @media (max-width:620px) { .countdown { font-size:clamp(3.6rem,18vw,5.25rem); } .earning-block { margin-top:26px; display:block; } .earned { font-size:clamp(2.7rem,14vw,4.2rem); } .per-second { padding-top:7px; } .finish-flag { width:74px; height:74px; left:calc(100% - 18px); bottom:10px; } }
+    @media (max-width:620px) {
+      body { position:relative; background-image:url("office-night-bg.png"); background-position:78% top; background-size:auto 135%; }
+      .scene-lettering { position:absolute; inset:0 auto auto 0; width:100%; height:auto; }
+      .journey-labels { display:grid; grid-template-columns:1fr auto 1fr; align-items:center; gap:8px; margin-top:17px; }
+      .journey-labels span { display:flex; align-items:baseline; gap:5px; font-size:.77rem; white-space:nowrap; }
+      .journey-labels span:first-child { display:flex; }
+      .journey-labels span:last-child { justify-content:flex-end; transform:none; }
+      .journey-labels small { font-size:.72rem; }
+      .progress-readout { position:static; top:auto; left:auto!important; transform:none; justify-self:center; padding:0; border:0; background:none; font-size:.77rem; }
     }
-    button, input, select { font: inherit; }
-    .shell { width: min(920px, calc(100% - 32px)); margin: 0 auto; padding: 30px 0 48px; }
-    header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
-    .brand { display: flex; align-items: center; gap: 11px; font-weight: 800; letter-spacing: -.02em; }
-    .mark { width: 34px; height: 34px; display: grid; place-items: center; border-radius: 10px; background: var(--acid); color: #0b100e; font-size: 1.05rem; }
-    .header-actions { display: flex; align-items: center; gap: 14px; }
-    .date { color: var(--muted); font-size: .875rem; }
-    .settings-button, .close-button { border: 1px solid var(--line); background: var(--panel); color: var(--text); cursor: pointer; transition: border-color .2s, transform .2s, background .2s; }
-    .settings-button { display: inline-flex; align-items: center; gap: 7px; min-height: 40px; padding: 0 13px; border-radius: 12px; }
-    .settings-button:hover, .close-button:hover { border-color: var(--acid); background: var(--panel-2); }
-    .settings-button:active, .close-button:active { transform: scale(.96); }
-    .settings-button svg { width: 17px; height: 17px; }
-    main { display: grid; gap: 18px; }
-    .card { background: linear-gradient(145deg, rgba(23,30,45,.92), rgba(14,19,30,.96)); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: 0 24px 70px rgba(0,0,0,.22); }
-    .live { min-height: 560px; padding: clamp(26px, 5vw, 58px); display: flex; flex-direction: column; overflow: hidden; position: relative; }
-    .live::after { content: "¥"; position: absolute; right: -20px; bottom: -95px; color: rgba(216,255,79,.035); font-size: 28rem; font-weight: 900; line-height: 1; pointer-events: none; }
-    .status { display: inline-flex; align-items: center; gap: 9px; width: fit-content; color: var(--acid); font-size: .875rem; font-weight: 750; letter-spacing: .06em; text-transform: uppercase; }
-    .pulse { width: 8px; height: 8px; border-radius: 50%; background: currentColor; box-shadow: 0 0 0 0 rgba(216,255,79,.45); animation: pulse 1.7s infinite; }
-    @keyframes pulse { 70% { box-shadow: 0 0 0 9px rgba(216,255,79,0); } }
-    .eyebrow { color: var(--muted); margin: 72px 0 8px; font-size: .95rem; }
-    .countdown { margin: 0; font-variant-numeric: tabular-nums; font-size: clamp(3.5rem, 9vw, 7.4rem); line-height: .95; letter-spacing: -.075em; font-weight: 820; position: relative; z-index: 1; }
-    .countdown span { color: var(--muted); font-size: .2em; letter-spacing: 0; margin-left: .28em; font-weight: 650; }
-    .earned-wrap { margin-top: auto; position: relative; z-index: 1; }
-    .earned-label { color: var(--muted); margin-bottom: 7px; }
-    .earned { color: var(--acid); font-size: clamp(2.1rem, 5vw, 4rem); font-weight: 800; letter-spacing: -.04em; font-variant-numeric: tabular-nums; animation: money-glow 2.2s ease-in-out infinite; }
-    @keyframes money-glow { 50% { text-shadow: 0 0 22px rgba(216,255,79,.2); } }
-    .per-second { color: var(--muted); margin-top: 6px; font-size: .9rem; }
-    .journey { margin-top: 28px; width: min(100%, 620px); position: relative; padding-top: 74px; }
-    .journey-head { position: absolute; inset: 0 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-    .journey-title { color: var(--muted); font-size: .78rem; }
-    .mascot-readout { color: #0b100e; background: var(--acid); padding: 7px 11px; border-radius: 10px; font-weight: 800; font-size: .74rem; box-shadow: 0 8px 24px rgba(0,0,0,.18); white-space: nowrap; }
-    .journey-labels { display: flex; justify-content: space-between; color: var(--muted); font-size: .78rem; margin-top: 46px; }
-    .progress-track { height: 7px; overflow: visible; background: rgba(255,255,255,.08); border-radius: 999px; position: relative; }
-    .progress-bar { height: 100%; width: 0; border-radius: inherit; background: linear-gradient(90deg, var(--acid), #7cffc9); transition: width .6s ease; box-shadow: 0 0 16px rgba(216,255,79,.35); }
-    .mascot-marker { position: absolute; left: 8%; bottom: -7px; width: 86px; padding: 0; border: 0; background: none; cursor: pointer; transform: translate(-50%, 0); transition: left .7s ease; z-index: 3; }
-    .mascot-marker:hover .mascot-stack { transform: translateY(-4px); }
-    .mascot-marker:focus-visible { outline: 2px solid var(--blue); outline-offset: 6px; border-radius: 16px; }
-    .mascot-stack { display: block; width: 100%; aspect-ratio: 1; position: relative; filter: drop-shadow(0 10px 14px rgba(0,0,0,.36)); transition: transform .2s ease; }
-    .mascot-walk-frame { display: block; width: 100%; height: 100%; object-fit: contain; }
-    .mascot-marker.celebrate .mascot-walk-frame { animation: mascot-party .5s ease-in-out infinite alternate; }
-    .coin { position: absolute; color: var(--acid); font-weight: 900; font-size: .82rem; opacity: 0; pointer-events: none; }
-    .coin.c1 { left: 5%; top: 18%; }
-    .coin.c2 { right: 4%; top: 42%; }
-    .coin.c3 { left: 36%; top: 52%; }
-    .mascot-marker.reacting .coin { animation: coin-pop .75s ease-out; }
-    .mascot-marker.reacting .coin.c2 { animation-delay: .08s; }
-    .mascot-marker.reacting .coin.c3 { animation-delay: .16s; }
-    @keyframes mascot-party { from { transform: translateY(0) rotate(-5deg) scale(1); } to { transform: translateY(-7px) rotate(5deg) scale(1.05); } }
-    @keyframes coin-pop { 0% { transform: translateY(5px) scale(.7); opacity: 0; } 35% { opacity: 1; } 100% { transform: translateY(-28px) scale(1.15); opacity: 0; } }
-    .settings-dialog { width: min(440px, calc(100% - 28px)); max-height: min(740px, calc(100vh - 28px)); margin: auto; padding: 0; color: var(--text); background: transparent; border: 0; overflow: visible; }
-    .settings-dialog::backdrop { background: rgba(3,7,13,.72); backdrop-filter: blur(8px); }
-    .settings { padding: 25px; display: flex; flex-direction: column; max-height: min(740px, calc(100vh - 28px)); overflow: auto; }
-    .settings-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
-    .settings-title { display: flex; align-items: baseline; gap: 10px; }
-    .close-button { width: 38px; height: 38px; border-radius: 11px; font-size: 1.4rem; line-height: 1; }
-    h2 { margin: 0; font-size: 1.12rem; }
-    .saved { font-size: .78rem; color: var(--muted); opacity: 0; transition: opacity .2s; }
-    .saved.show { opacity: 1; }
-    .field { margin-bottom: 17px; }
-    label { display: block; color: #c4cbd6; font-size: .875rem; margin-bottom: 8px; }
-    input, select {
-      width: 100%; border: 1px solid var(--line); background: #0d1320; color: var(--text);
-      border-radius: 13px; padding: 13px 14px; outline: none; min-height: 48px;
-    }
-    input:focus, select:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(100,181,255,.12); }
-    select { cursor: pointer; }
-    .two { display: grid; grid-template-columns: 1fr 1fr; gap: 11px; }
-    .salary-box { position: relative; }
-    .salary-box::before { content: "¥"; position: absolute; left: 14px; top: 13px; color: var(--muted); z-index: 1; }
-    .salary-box input { padding-left: 32px; }
-    .rates { margin-top: auto; padding-top: 18px; border-top: 1px solid var(--line); display: grid; gap: 13px; }
-    .rate { display: flex; align-items: center; justify-content: space-between; color: var(--muted); font-size: .86rem; }
-    .rate strong { color: var(--text); font-size: 1rem; font-variant-numeric: tabular-nums; }
-    .tip { padding: 15px 18px; border-radius: 15px; background: rgba(100,181,255,.08); border: 1px solid rgba(100,181,255,.18); color: #b9d9f5; font-size: .86rem; line-height: 1.55; }
-    @media (max-width: 760px) {
-      .shell { width: min(100% - 22px, 560px); padding-top: 18px; }
-      .live { min-height: 440px; padding: 28px 24px; }
-      .eyebrow { margin-top: 56px; }
-      .countdown { font-size: clamp(3.3rem, 17vw, 5.2rem); }
-      .journey { padding-top: 68px; margin-top: 24px; }
-      .mascot-marker { width: 74px; }
-      .mascot-readout { font-size: .68rem; }
-      .date { display: none; }
-      .settings-button span { display: none; }
-      .settings-button { width: 40px; padding: 0; justify-content: center; }
-    }
-    @media (prefers-reduced-motion: reduce) { .pulse, .mascot-walk-frame, .coin, .earned { animation: none !important; } .progress-bar, .mascot-marker { transition: none; } }
+    @media (prefers-reduced-motion:reduce) { .pulse,.mascot-stack,.mascot-trail,.track-ticks { animation:none!important; } .progress-bar,.mascot-marker,.progress-readout,.mascot-note,.track-ticks { transition:none!important; } }
   </style>
 </head>
 <body>
+  <canvas class="scene-lettering" id="sceneLettering" aria-hidden="true"></canvas>
+  <p class="sr-only" id="dailyQuote"></p>
   <div class="shell">
     <header>
-      <div class="brand"><span class="mark">¥</span><span>薪跳</span></div>
-      <div class="header-actions">
-        <div class="date" id="dateText"></div>
-        <button class="settings-button" id="openSettings" type="button" aria-haspopup="dialog" aria-controls="settingsDialog">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-2.83 2.83-.06-.06a1.7 1.7 0 0 0-1.88-.34 1.7 1.7 0 0 0-1.03 1.56V21h-4v-.08A1.7 1.7 0 0 0 8.96 19.4a1.7 1.7 0 0 0-1.88.34l-.06.06-2.83-2.83.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.56-1.03H3v-4h.08A1.7 1.7 0 0 0 4.6 8.96a1.7 1.7 0 0 0-.34-1.88l-.06-.06 2.83-2.83.06.06A1.7 1.7 0 0 0 8.96 4.6 1.7 1.7 0 0 0 10 3.08V3h4v.08a1.7 1.7 0 0 0 1.03 1.56 1.7 1.7 0 0 0 1.88-.34l.06-.06 2.83 2.83-.06.06a1.7 1.7 0 0 0-.34 1.88A1.7 1.7 0 0 0 20.92 10H21v4h-.08A1.7 1.7 0 0 0 19.4 15Z"/></svg>
-          <span>设置</span>
-        </button>
-      </div>
+      <div class="brand"><span class="mark"><img src="bull-mark.png" alt="" /></span><span>薪跳</span></div>
+      <div class="header-actions"><div class="date" id="dateText"></div><button class="settings-button" id="openSettings" type="button" aria-haspopup="dialog" aria-controls="settingsDialog">设置</button></div>
     </header>
     <main>
-      <section class="card live" aria-live="polite">
-        <div class="status"><span class="pulse"></span><span id="statusText">工作进行中</span></div>
-        <div class="eyebrow" id="countdownLabel">距离下班还有</div>
-        <p class="countdown" id="countdown">00:00:00</p>
-        <div class="earned-wrap">
-          <div class="earned-label" id="earnedLabel">今天已经赚到</div>
-          <div class="earned" id="earned">¥0.00</div>
-          <div class="per-second" id="perSecondText">每一秒都算数</div>
-          <div class="journey" aria-label="今日工作进度">
-            <div class="journey-head"><span class="journey-title">牛马下班路线</span><strong class="mascot-readout" id="mascotSay">向下班前进</strong></div>
-            <div class="progress-track">
-              <div class="progress-bar" id="progressBar"></div>
-              <button class="mascot-marker" id="mascotMarker" type="button" aria-label="查看今日工作进度详情">
-                <span class="coin c1">+¥</span><span class="coin c2">+¥</span><span class="coin c3">+¥</span>
-                <span class="mascot-stack" aria-hidden="true">
-                  <img class="mascot-walk-frame" id="mascotWalkFrame" src="mascot-walk-1.png" alt="" />
-                </span>
-              </button>
-            </div>
-            <div class="journey-labels"><span>上班</span><span id="progressText">0%</span><span>下班</span></div>
+      <section class="live" aria-live="polite">
+        <div class="hero">
+          <div class="status"><span class="pulse"></span><span id="statusText">工作进行中</span></div>
+          <div class="eyebrow" id="countdownLabel">距离下班还有</div>
+          <p class="countdown" id="countdown">00:00:00</p>
+          <div class="earning-block"><div><div class="earned-label" id="earnedLabel">今天已经赚到</div><div class="earned" id="earned">¥0.00</div></div><div class="per-second" id="perSecondText">每秒 <strong>+¥0.0000</strong></div></div>
+        </div>
+        <div class="journey" aria-label="今日工作进度">
+          <div class="progress-track">
+            <div class="track-line"><div class="progress-bar" id="progressBar"></div></div><div class="track-ticks" id="trackTicks" aria-hidden="true"></div><div class="start-callout">上班<span id="startCalloutTime">09:00</span></div><span class="track-point finish" aria-hidden="true"></span><img class="finish-flag" src="finish-flag.png" alt="" aria-hidden="true" />
+            <button class="mascot-marker" id="mascotMarker" type="button" aria-label="查看今日工作进度详情"><img class="mascot-trail" src="mascot-trail.png" alt="" aria-hidden="true" /><span class="mascot-stack" aria-hidden="true"><img class="mascot-walk-frame" id="mascotWalkFrame" src="mascot-gallop-1-v2.png" alt="" /></span><span class="mascot-note" id="mascotSay">向下班前进</span></button>
           </div>
+          <div class="journey-labels"><span>上班<small id="startLabel">09:00</small></span><div class="progress-readout" id="progressReadout">当前 <strong id="progressText">0%</strong></div><span>下班<small id="endLabel">18:00</small></span></div>
         </div>
       </section>
-
-      <div class="tip">系统会根据当前月份和排班方式自动计算工作天数，再估算每天、每小时和每秒收入。结果仅供日常参考。</div>
     </main>
-
+    <div class="footnote">系统会按当月排班自动计算工作天数，收入为实时估算。</div>
     <dialog class="settings-dialog" id="settingsDialog" aria-labelledby="settingsTitle">
-      <section class="card settings" aria-label="工资设置">
-        <div class="settings-head">
-          <div class="settings-title"><h2 id="settingsTitle">工作设置</h2><span class="saved" id="saved">已保存</span></div>
-          <button class="close-button" id="closeSettings" type="button" aria-label="关闭设置">×</button>
-        </div>
-        <div class="field">
-          <label for="salary">税前月薪</label>
-          <div class="salary-box"><input id="salary" type="number" min="0" step="100" inputmode="decimal" value="12000" /></div>
-        </div>
-        <div class="two">
-          <div class="field"><label for="start">上班时间</label><input id="start" type="time" value="09:00" /></div>
-          <div class="field"><label for="end">下班时间</label><input id="end" type="time" value="18:00" /></div>
-        </div>
-        <div class="field">
-          <label for="schedule">排班方式</label>
-          <select id="schedule">
-            <option value="double">双休（周六、周日休）</option>
-            <option value="single">单休（周日休）</option>
-            <option value="none">无休</option>
-          </select>
-        </div>
-        <div class="rates">
-          <div class="rate"><span>本月工作天数</span><strong id="workdaysCount">0 天</strong></div>
-          <div class="rate"><span>每小时</span><strong id="hourRate">¥0.00</strong></div>
-          <div class="rate"><span>每分钟</span><strong id="minuteRate">¥0.00</strong></div>
-          <div class="rate"><span>每秒</span><strong id="secondRate">¥0.0000</strong></div>
-          <div class="rate"><span>今日目标</span><strong id="dayRate">¥0.00</strong></div>
-        </div>
+      <section class="settings" aria-label="工资设置">
+        <div class="settings-head"><div class="settings-title"><h2 id="settingsTitle">工作设置</h2><span class="saved" id="saved">已保存</span></div><button class="close-button" id="closeSettings" type="button" aria-label="关闭设置">×</button></div>
+        <div class="field"><label for="salary">税前月薪</label><div class="salary-box"><input id="salary" type="number" min="0" step="100" inputmode="decimal" value="12000" /></div></div>
+        <div class="two"><div class="field"><label for="start">上班时间</label><input id="start" type="time" value="09:00" /></div><div class="field"><label for="end">下班时间</label><input id="end" type="time" value="18:00" /></div></div>
+        <div class="field"><label for="schedule">排班方式</label><select id="schedule"><option value="double">双休（周六、周日休）</option><option value="single">单休（周日休）</option><option value="none">无休</option></select></div>
+        <div class="rates"><div class="rate"><span>本月工作天数</span><strong id="workdaysCount">0 天</strong></div><div class="rate"><span>每小时</span><strong id="hourRate">¥0.00</strong></div><div class="rate"><span>每分钟</span><strong id="minuteRate">¥0.00</strong></div><div class="rate"><span>每秒</span><strong id="secondRate">¥0.0000</strong></div><div class="rate"><span>今日目标</span><strong id="dayRate">¥0.00</strong></div></div>
       </section>
     </dialog>
   </div>
   <script>
-    const $ = (id) => document.getElementById(id);
-    const fields = ['salary', 'start', 'end', 'schedule'];
-    const defaults = { salary: 12000, start: '09:00', end: '18:00', schedule: 'double' };
-    const currency = new Intl.NumberFormat('zh-CN', { style: 'currency', currency: 'CNY', minimumFractionDigits: 2 });
-
-    function readSettings() {
-      return {
-        salary: Math.max(0, Number($('salary').value) || 0),
-        start: $('start').value || defaults.start,
-        end: $('end').value || defaults.end,
-        schedule: ['double', 'single', 'none'].includes($('schedule').value) ? $('schedule').value : defaults.schedule
-      };
-    }
-
-    function timeOn(date, value) {
-      const [h, m] = value.split(':').map(Number);
-      const result = new Date(date);
-      result.setHours(h, m, 0, 0);
-      return result;
-    }
-
-    function formatDuration(ms) {
-      const seconds = Math.max(0, Math.floor(ms / 1000));
-      const h = String(Math.floor(seconds / 3600)).padStart(2, '0');
-      const m = String(Math.floor(seconds % 3600 / 60)).padStart(2, '0');
-      const s = String(seconds % 60).padStart(2, '0');
-      return `${h}:${m}:${s}`;
-    }
-
-    function isWorkday(date, schedule) {
-      const weekday = date.getDay();
-      if (schedule === 'none') return true;
-      if (schedule === 'single') return weekday !== 0;
-      return weekday !== 0 && weekday !== 6;
-    }
-
-    function countMonthWorkdays(date, schedule) {
-      const year = date.getFullYear();
-      const month = date.getMonth();
-      const daysInMonth = new Date(year, month + 1, 0).getDate();
-      let count = 0;
-      for (let day = 1; day <= daysInMonth; day += 1) {
-        if (isWorkday(new Date(year, month, day), schedule)) count += 1;
-      }
-      return count;
-    }
-
-    function calculate(settings, now = new Date()) {
-      let start = timeOn(now, settings.start);
-      let end = timeOn(now, settings.end);
-      if (end <= start) end.setDate(end.getDate() + 1);
-      if (now.getHours() < 6 && end.getDate() !== start.getDate()) start.setDate(start.getDate() - 1);
-
-      const workdays = countMonthWorkdays(now, settings.schedule);
-      const totalSeconds = Math.max(60, (end - start) / 1000);
-      const dayRate = settings.salary / Math.max(1, workdays);
-      const secondRate = dayRate / totalSeconds;
-      let state = 'working';
-      let remaining = end - now;
-      let elapsedSeconds = Math.max(0, (now - start) / 1000);
-
-      if (!isWorkday(start, settings.schedule)) { state = 'off'; remaining = 0; elapsedSeconds = 0; }
-      else if (now < start) { state = 'before'; remaining = start - now; elapsedSeconds = 0; }
-      else if (now >= end) { state = 'after'; remaining = 0; elapsedSeconds = totalSeconds; }
-      const shiftSeconds = Math.max(60, (end - start) / 1000);
-      const progress = state === 'after' ? 1 : Math.min(1, Math.max(0, elapsedSeconds / shiftSeconds));
-      return { state, remaining, earned: dayRate * progress, progress, dayRate, secondRate, totalSeconds, workdays };
-    }
-
-    let mascotMode = 0;
-    let latestResult = null;
-    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const walkFrames = Array.from({ length: 6 }, (_, index) => `mascot-walk-${index + 1}.png`);
-    let walkFrameIndex = 0;
-    let walkFramesReady = false;
-    Promise.all(walkFrames.map((src) => new Promise((resolve) => {
-      const image = new Image();
-      image.onload = image.onerror = resolve;
-      image.src = src;
-    }))).then(() => { walkFramesReady = true; });
-
-    function advanceWalkFrame() {
-      if (!latestResult || latestResult.state !== 'working' || reduceMotion || !walkFramesReady) return;
-      walkFrameIndex = (walkFrameIndex + 1) % walkFrames.length;
-      $('mascotWalkFrame').src = walkFrames[walkFrameIndex];
-    }
-
-    function mascotMessage(result) {
-      if (result.state === 'off') return '今天歇一歇';
-      if (mascotMode === 1) return `已赚 ${currency.format(result.earned)}`;
-      if (mascotMode === 2) return result.state === 'after' ? '今天完成啦' : `还剩 ${formatDuration(result.remaining)}`;
-      if (mascotMode === 3) return `今日进度 ${Math.round(result.progress * 100)}%`;
-      if (result.state === 'before') return '等待打卡';
-      if (result.state === 'after') return '成功抵达下班！';
-      if (result.progress >= .85) return '马上到下班站';
-      if (result.progress >= .5) return '已过半程';
-      return '向下班前进';
-    }
-
-    function render() {
-      const settings = readSettings();
-      const now = new Date();
-      const result = calculate(settings, now);
-      latestResult = result;
-      $('dateText').textContent = new Intl.DateTimeFormat('zh-CN', { month: 'long', day: 'numeric', weekday: 'long' }).format(now);
-      $('workdaysCount').textContent = `${result.workdays} 天`;
-      $('dayRate').textContent = currency.format(result.dayRate);
-      $('hourRate').textContent = currency.format(result.secondRate * 3600);
-      $('minuteRate').textContent = currency.format(result.secondRate * 60);
-      $('secondRate').textContent = `¥${result.secondRate.toFixed(4)}`;
-      $('earned').textContent = currency.format(result.earned);
-      $('perSecondText').textContent = `此刻每秒入账 ¥${result.secondRate.toFixed(4)}`;
-      $('progressBar').style.width = `${result.progress * 100}%`;
-      $('progressText').textContent = `${Math.round(result.progress * 100)}%`;
-      $('mascotMarker').style.left = `${Math.max(7, Math.min(93, result.progress * 100))}%`;
-      $('mascotMarker').classList.toggle('walking', result.state === 'working');
-      $('mascotMarker').classList.toggle('celebrate', result.state === 'after');
-      if (result.state === 'before' || result.state === 'off') $('mascotWalkFrame').src = walkFrames[0];
-      if (result.state === 'after') $('mascotWalkFrame').src = walkFrames[5];
-      $('mascotSay').textContent = mascotMessage(result);
-
-      if (result.state === 'off') {
-        $('statusText').textContent = '今天休息';
-        $('countdownLabel').textContent = '不用打卡';
-        $('countdown').innerHTML = '休息日<span>☕</span>';
-        $('earnedLabel').textContent = '今日收入';
-        $('perSecondText').textContent = '休息日不计时';
-      } else if (result.state === 'before') {
-        $('statusText').textContent = '等待上班';
-        $('countdownLabel').textContent = '距离上班还有';
-        $('countdown').textContent = formatDuration(result.remaining);
-        $('earnedLabel').textContent = '今天已经赚到';
-      } else if (result.state === 'after') {
-        $('statusText').textContent = '今日已收工';
-        $('countdownLabel').textContent = '今天辛苦了';
-        $('countdown').innerHTML = '已下班<span>✓</span>';
-        $('earnedLabel').textContent = '今日收入估算';
-      } else {
-        $('statusText').textContent = '工作进行中';
-        $('countdownLabel').textContent = '距离下班还有';
-        $('countdown').textContent = formatDuration(result.remaining);
-        $('earnedLabel').textContent = '今天已经赚到';
+    const $=id=>document.getElementById(id); const fields=['salary','start','end','schedule']; const defaults={salary:12000,start:'09:00',end:'18:00',schedule:'double'}; const currency=new Intl.NumberFormat('zh-CN',{style:'currency',currency:'CNY',minimumFractionDigits:2});
+    function readSettings(){return{salary:Math.max(0,Number($('salary').value)||0),start:$('start').value||defaults.start,end:$('end').value||defaults.end,schedule:['double','single','none'].includes($('schedule').value)?$('schedule').value:defaults.schedule};}
+    function timeOn(date,value){const[h,m]=value.split(':').map(Number);const result=new Date(date);result.setHours(h,m,0,0);return result;}
+    function formatDuration(ms){const seconds=Math.max(0,Math.floor(ms/1000));const h=String(Math.floor(seconds/3600)).padStart(2,'0');const m=String(Math.floor(seconds%3600/60)).padStart(2,'0');const s=String(seconds%60).padStart(2,'0');return`${h}:${m}:${s}`;}
+    function isWorkday(date,schedule){const weekday=date.getDay();if(schedule==='none')return true;if(schedule==='single')return weekday!==0;return weekday!==0&&weekday!==6;}
+    function countMonthWorkdays(date,schedule){const year=date.getFullYear(),month=date.getMonth(),daysInMonth=new Date(year,month+1,0).getDate();let count=0;for(let day=1;day<=daysInMonth;day+=1)if(isWorkday(new Date(year,month,day),schedule))count+=1;return count;}
+    function calculate(settings,now=new Date()){let start=timeOn(now,settings.start),end=timeOn(now,settings.end);if(end<=start)end.setDate(end.getDate()+1);if(now.getHours()<6&&end.getDate()!==start.getDate())start.setDate(start.getDate()-1);const workdays=countMonthWorkdays(now,settings.schedule),totalSeconds=Math.max(60,(end-start)/1000),dayRate=settings.salary/Math.max(1,workdays),secondRate=dayRate/totalSeconds;let state='working',remaining=end-now,elapsedSeconds=Math.max(0,(now-start)/1000);if(!isWorkday(start,settings.schedule)){state='off';remaining=0;elapsedSeconds=0;}else if(now<start){state='before';remaining=start-now;elapsedSeconds=0;}else if(now>=end){state='after';remaining=0;elapsedSeconds=totalSeconds;}const progress=state==='after'?1:Math.min(1,Math.max(0,elapsedSeconds/totalSeconds));return{state,remaining,earned:dayRate*progress,progress,dayRate,secondRate,workdays};}
+    const dailyQuotes=[
+      ['人在工位','心在下班'],['上班求财','不求感动'],['工资到账','烦恼退散'],['老板画饼','我先加葱'],
+      ['班可以上','钱不能少'],['今日营业','只为发薪'],['嘴上加油','心里下班'],['打工不易','求财保命'],
+      ['带薪喝水','也是正事'],['工位坐稳','暴富靠运'],['周末太短','工资太慢'],['不要鸡汤','只要到账'],
+      ['财神保佑','少点加班'],['会议太长','人生苦短'],['活可以干','钱请到位'],['牛马开工','钱包争气']
+    ];
+    const scenePhoto=new Image();scenePhoto.src='office-night-dynamic-v4.png';
+    const fortuneGod=new Image();fortuneGod.onload=drawSceneLettering;fortuneGod.src='fortune-god-figurine-side.png';
+    let dailyKey='',activeQuote=dailyQuotes[0];
+    function quoteForDate(date){const day=Math.floor(Date.UTC(date.getFullYear(),date.getMonth(),date.getDate())/86400000);return dailyQuotes[((day%dailyQuotes.length)+dailyQuotes.length)%dailyQuotes.length];}
+    function drawSceneLettering(){
+      const canvas=$('sceneLettering'),mobile=window.innerWidth<=620,width=mobile?document.body.clientWidth:window.innerWidth,height=window.innerHeight,ratio=Math.min(window.devicePixelRatio||1,2);
+      canvas.width=Math.round(width*ratio);canvas.height=Math.round(height*ratio);
+      const ctx=canvas.getContext('2d');if(!ctx)return;
+      ctx.setTransform(ratio,0,0,ratio,0,0);
+      const imageWidth=scenePhoto.naturalWidth||1487,imageHeight=scenePhoto.naturalHeight||1058;
+      const scale=mobile?document.body.getBoundingClientRect().height*1.35/imageHeight:Math.max(width/imageWidth,height/imageHeight);
+      const xPosition=mobile?.78:window.matchMedia('(max-width:900px)').matches?.6:.5;
+      ctx.translate((width-imageWidth*scale)*xPosition,mobile?0:(height-imageHeight*scale)/2);ctx.scale(scale,scale);
+      if(mobile&&fortuneGod.complete&&fortuneGod.naturalWidth){ctx.save();ctx.filter='brightness(.78) saturate(.85)';ctx.shadowColor='rgba(0,0,0,.65)';ctx.shadowBlur=5;ctx.shadowOffsetY=2;ctx.translate(1132,0);ctx.scale(-1,1);ctx.drawImage(fortuneGod,0,521,42,43);ctx.restore();}
+      ctx.save();ctx.translate(mobile?1084:1080,mobile?408:400);ctx.textAlign='center';ctx.textBaseline='alphabetic';
+      ctx.filter='blur(.45px)';ctx.shadowColor='rgba(149,190,219,.18)';ctx.shadowBlur=3;
+      const screenInk=ctx.createLinearGradient(-90,-12,85,64);screenInk.addColorStop(0,'rgba(188,207,220,.63)');screenInk.addColorStop(.55,'rgba(212,225,232,.78)');screenInk.addColorStop(1,'rgba(174,199,217,.62)');
+      ctx.shadowBlur=2;ctx.font=`${mobile?'650 33px':'600 25px'} "Microsoft YaHei", "PingFang SC", sans-serif`;ctx.fillStyle=screenInk;
+      ctx.save();ctx.transform(1,-.108,0,.96,0,0);ctx.fillText(activeQuote[0],0,mobile?14:18,190);ctx.restore();
+      ctx.save();ctx.transform(1,-.095,0,.96,0,0);ctx.fillText(activeQuote[1],0,mobile?58:55,190);ctx.restore();ctx.restore();
+      if(width>1200){
+        ctx.save();ctx.translate(1373,195);ctx.rotate(-.07);ctx.textAlign='left';ctx.textBaseline='alphabetic';ctx.fillStyle='rgba(12,28,49,.91)';
+        ctx.font='800 36px "Microsoft YaHei", "PingFang SC", sans-serif';ctx.fillText('求财',0,0);
+        ctx.font='800 26px "Microsoft YaHei", "PingFang SC", sans-serif';ctx.fillText('不求上进',0,64,108);ctx.fillText('只求暴富',0,126,108);ctx.restore();
+      }else if(width>900){
+        ctx.save();ctx.translate(1366,195);ctx.rotate(-.07);ctx.textAlign='left';ctx.fillStyle='rgba(12,28,49,.91)';
+        ctx.font='800 29px "Microsoft YaHei", "PingFang SC", sans-serif';ctx.fillText('求财',0,0);ctx.restore();
       }
     }
-
-    function applySettings(next) {
-      for (const key of fields) if (next[key] !== undefined) $(key).value = String(next[key]);
-      localStorage.setItem('salaryTickerSettings', JSON.stringify(readSettings()));
-      render();
-      return { settings: readSettings(), message: '设置已更新' };
-    }
-
-    try {
-      const stored = JSON.parse(localStorage.getItem('salaryTickerSettings'));
-      if (stored) for (const key of fields) if (stored[key] !== undefined) $(key).value = stored[key];
-    } catch (_) {}
-
-    const settingsDialog = $('settingsDialog');
-    $('openSettings').addEventListener('click', () => settingsDialog.showModal());
-    $('closeSettings').addEventListener('click', () => settingsDialog.close());
-    settingsDialog.addEventListener('click', (event) => {
-      if (event.target === settingsDialog) settingsDialog.close();
-    });
-
-    $('mascotMarker').addEventListener('click', () => {
-      mascotMode = (mascotMode + 1) % 4;
-      const marker = $('mascotMarker');
-      marker.classList.remove('reacting');
-      void marker.offsetWidth;
-      marker.classList.add('reacting');
-      setTimeout(() => marker.classList.remove('reacting'), 950);
-      if (latestResult) $('mascotSay').textContent = mascotMessage(latestResult);
-    });
-
-    let savedTimer;
-    fields.forEach((id) => $(id).addEventListener('input', () => {
-      localStorage.setItem('salaryTickerSettings', JSON.stringify(readSettings()));
-      $('saved').classList.add('show');
-      clearTimeout(savedTimer);
-      savedTimer = setTimeout(() => $('saved').classList.remove('show'), 1300);
-      render();
-    }));
-
-    const context = document.modelContext;
-    if (context?.registerTool) {
-      const lifecycle = new AbortController();
-      try {
-        Promise.resolve(context.registerTool({
-          name: 'configure_salary_timer',
-          title: '设置工资计时器',
-          description: '设置月薪、上下班时间和排班方式，并按当前月份自动计算工作天数与实时收入。',
-          inputSchema: {
-            type: 'object',
-            properties: {
-              salary: { type: 'number', minimum: 0 },
-              start: { type: 'string', pattern: '^([01]\\d|2[0-3]):[0-5]\\d$' },
-              end: { type: 'string', pattern: '^([01]\\d|2[0-3]):[0-5]\\d$' },
-              schedule: { type: 'string', enum: ['double', 'single', 'none'] }
-            },
-            additionalProperties: false
-          },
-          annotations: { readOnlyHint: false, untrustedContentHint: false },
-          execute(input) {
-            if (!input || typeof input !== 'object') throw new Error('请输入有效的设置');
-            if (input.salary !== undefined && (!Number.isFinite(input.salary) || input.salary < 0)) throw new Error('月薪不能小于 0');
-            if (input.schedule !== undefined && !['double', 'single', 'none'].includes(input.schedule)) throw new Error('排班方式应为双休、单休或无休');
-            if (input.start !== undefined && !/^([01]\d|2[0-3]):[0-5]\d$/.test(input.start)) throw new Error('上班时间格式应为 HH:mm');
-            if (input.end !== undefined && !/^([01]\d|2[0-3]):[0-5]\d$/.test(input.end)) throw new Error('下班时间格式应为 HH:mm');
-            return applySettings(input);
-          }
-        }, { signal: lifecycle.signal })).catch(() => {});
-      } catch (_) {}
-    }
-
-    render();
-    setInterval(advanceWalkFrame, 120);
-    setInterval(render, 250);
+    function updateDailyLettering(){const now=new Date(),key=`${now.getFullYear()}-${now.getMonth()+1}-${now.getDate()}`;if(key===dailyKey)return;dailyKey=key;activeQuote=quoteForDate(now);$('dailyQuote').textContent=`今日屏幕：${activeQuote.join('，')}。海报：求财，不求上进，只求暴富。`;drawSceneLettering();}
+    scenePhoto.onload=drawSceneLettering;window.addEventListener('resize',drawSceneLettering);document.fonts?.ready.then(drawSceneLettering);
+    let mascotMode=0,latestResult=null,walkFrameIndex=0,walkFramesReady=false;const reduceMotion=window.matchMedia('(prefers-reduced-motion: reduce)').matches,walkFrames=[1,2,3,4].map(index=>`mascot-gallop-${index}-v2.png`);Promise.all(walkFrames.map(src=>new Promise(resolve=>{const image=new Image();image.onload=image.onerror=resolve;image.src=src;}))).then(()=>{walkFramesReady=true;});
+    function advanceWalkFrame(){if(!latestResult||latestResult.state!=='working'||reduceMotion||!walkFramesReady)return;walkFrameIndex=(walkFrameIndex+1)%walkFrames.length;$('mascotWalkFrame').src=walkFrames[walkFrameIndex];}
+    function mascotMessage(result){if(result.state==='off')return'今天歇一歇';if(mascotMode===1)return`已赚 ${currency.format(result.earned)}`;if(mascotMode===2)return result.state==='after'?'今天完成啦':`还剩 ${formatDuration(result.remaining)}`;if(mascotMode===3)return`今日进度 ${Math.round(result.progress*100)}%`;if(result.state==='before')return'等待打卡';if(result.state==='after')return'成功抵达下班';if(result.progress>=.85)return'马上到下班站';if(result.progress>=.5)return'已过半程';return'向下班前进';}
+    function render(){const settings=readSettings(),now=new Date(),result=calculate(settings,now),visualProgress=Math.max(6,Math.min(94,result.progress*100));latestResult=result;$('dateText').textContent=new Intl.DateTimeFormat('zh-CN',{month:'long',day:'numeric',weekday:'long'}).format(now);$('startLabel').textContent=settings.start;$('startCalloutTime').textContent=settings.start;$('endLabel').textContent=settings.end;$('workdaysCount').textContent=`${result.workdays} 天`;$('dayRate').textContent=currency.format(result.dayRate);$('hourRate').textContent=currency.format(result.secondRate*3600);$('minuteRate').textContent=currency.format(result.secondRate*60);$('secondRate').textContent=`¥${result.secondRate.toFixed(4)}`;$('earned').textContent=currency.format(result.earned);$('perSecondText').innerHTML=`每秒 <strong>+¥${result.secondRate.toFixed(4)}</strong>`;$('progressBar').style.width=`${result.progress*100}%`;$('trackTicks').style.left=`${result.progress*100}%`;$('progressText').textContent=`${Math.round(result.progress*100)}%`;$('mascotMarker').style.left=`${visualProgress}%`;$('progressReadout').style.left=`${visualProgress}%`;$('mascotMarker').classList.toggle('walking',result.state==='working');$('mascotMarker').classList.toggle('celebrate',result.state==='after');if(result.state==='before'||result.state==='off')$('mascotWalkFrame').src=walkFrames[0];if(result.state==='after')$('mascotWalkFrame').src=walkFrames[3];$('mascotSay').textContent=mascotMessage(result);if(result.state==='off'){$('statusText').textContent='今天休息';$('countdownLabel').textContent='不用打卡';$('countdown').textContent='休息日';$('earnedLabel').textContent='今日收入';$('perSecondText').textContent='休息日不计时';}else if(result.state==='before'){$('statusText').textContent='等待上班';$('countdownLabel').textContent='距离上班还有';$('countdown').textContent=formatDuration(result.remaining);$('earnedLabel').textContent='今天已经赚到';}else if(result.state==='after'){$('statusText').textContent='今日已收工';$('countdownLabel').textContent='今天辛苦了';$('countdown').textContent='已下班';$('earnedLabel').textContent='今日收入估算';}else{$('statusText').textContent='工作进行中';$('countdownLabel').textContent='距离下班还有';$('countdown').textContent=formatDuration(result.remaining);$('earnedLabel').textContent='今天已经赚到';}}
+    function applySettings(next){for(const key of fields)if(next[key]!==undefined)$(key).value=String(next[key]);localStorage.setItem('salaryTickerSettings',JSON.stringify(readSettings()));render();return{settings:readSettings(),message:'设置已更新'};}
+    try{const stored=JSON.parse(localStorage.getItem('salaryTickerSettings'));if(stored)for(const key of fields)if(stored[key]!==undefined)$(key).value=stored[key];}catch(_){}
+    const settingsDialog=$('settingsDialog');$('openSettings').addEventListener('click',()=>settingsDialog.showModal());$('closeSettings').addEventListener('click',()=>settingsDialog.close());settingsDialog.addEventListener('click',event=>{if(event.target===settingsDialog)settingsDialog.close();});
+    $('mascotMarker').addEventListener('click',()=>{mascotMode=(mascotMode+1)%4;const marker=$('mascotMarker');marker.classList.remove('reacting');void marker.offsetWidth;marker.classList.add('reacting');setTimeout(()=>marker.classList.remove('reacting'),1450);if(latestResult)$('mascotSay').textContent=mascotMessage(latestResult);});
+    let savedTimer;fields.forEach(id=>$(id).addEventListener('input',()=>{localStorage.setItem('salaryTickerSettings',JSON.stringify(readSettings()));$('saved').classList.add('show');clearTimeout(savedTimer);savedTimer=setTimeout(()=>$('saved').classList.remove('show'),1300);render();}));
+    const context=document.modelContext;if(context?.registerTool){const lifecycle=new AbortController();try{Promise.resolve(context.registerTool({name:'configure_salary_timer',title:'设置工资计时器',description:'设置月薪、上下班时间和排班方式，并按当前月份自动计算工作天数与实时收入。',inputSchema:{type:'object',properties:{salary:{type:'number',minimum:0},start:{type:'string',pattern:'^([01]\\d|2[0-3]):[0-5]\\d$'},end:{type:'string',pattern:'^([01]\\d|2[0-3]):[0-5]\\d$'},schedule:{type:'string',enum:['double','single','none']}},additionalProperties:false},annotations:{readOnlyHint:false,untrustedContentHint:false},execute(input){if(!input||typeof input!=='object')throw new Error('请输入有效的设置');if(input.salary!==undefined&&(!Number.isFinite(input.salary)||input.salary<0))throw new Error('月薪不能小于 0');if(input.schedule!==undefined&&!['double','single','none'].includes(input.schedule))throw new Error('排班方式应为双休、单休或无休');if(input.start!==undefined&&!/^([01]\d|2[0-3]):[0-5]\d$/.test(input.start))throw new Error('上班时间格式应为 HH:mm');if(input.end!==undefined&&!/^([01]\d|2[0-3]):[0-5]\d$/.test(input.end))throw new Error('下班时间格式应为 HH:mm');return applySettings(input);}},{signal:lifecycle.signal})).catch(()=>{});}catch(_){}}
+    updateDailyLettering();render();setInterval(advanceWalkFrame,140);setInterval(render,250);setInterval(updateDailyLettering,1000);
   </script>
 </body>
 </html>
