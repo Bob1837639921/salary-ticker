@@ -1,0 +1,107 @@
+<view class="page-shell">
+  <image class="scene-background" src="/assets/office-night-bg.jpg" mode="scaleToFill" style="{{sceneStyle}}" />
+  <view class="scene-shade"></view>
+  <image class="scene-figurine" src="/assets/fortune-god-figurine-side.png" mode="scaleToFill" style="{{figurineStyle}}" aria-label="桌面上的财神爷摆件" />
+  <view class="scene-lettering" style="{{letteringStyle}}" aria-label="今日屏幕文案：{{dailyQuote[0]}}，{{dailyQuote[1]}}">
+    <text>{{dailyQuote[0]}}</text>
+    <text>{{dailyQuote[1]}}</text>
+  </view>
+
+  <view class="content" style="padding-top: {{contentTop}}px;">
+    <view class="header">
+      <view class="brand">
+        <image class="brand-mark" src="/assets/bull-mark.png" mode="aspectFill" />
+        <text>薪跳</text>
+      </view>
+      <button class="settings-button" bindtap="openSettings">设置</button>
+    </view>
+
+    <view class="hero">
+      <view class="status">
+        <view class="pulse {{state === 'working' ? 'pulse-active' : ''}}"></view>
+        <text>{{statusText}}</text>
+      </view>
+
+      <view class="eyebrow">{{countdownLabel}}</view>
+      <view class="countdown {{countdownCompact ? 'countdown-compact' : ''}}">{{countdown}}</view>
+
+      <view class="earning-block">
+        <view class="earned-label">{{earnedLabel}}</view>
+        <view class="earned">{{earned}}</view>
+        <view class="per-second" wx:if="{{state !== 'off'}}">每秒 <text>+¥{{secondRate}}</text></view>
+        <view class="per-second" wx:else>休息日不计时</view>
+      </view>
+    </view>
+
+    <view class="journey">
+      <view class="track-wrap">
+        <view class="track">
+          <view class="progress" style="width: {{progressPercent}}%;"></view>
+          <view class="track-dashes">
+            <view class="track-dash" wx:for="{{trackDashes}}" wx:key="*this"></view>
+          </view>
+        </view>
+        <view class="finish-point"></view>
+        <image class="finish-flag" src="/assets/finish-flag.png" mode="aspectFit" />
+        <view class="mascot" style="left: {{visualProgress}}%;" bindtap="tapMascot">
+          <view class="mascot-note {{showMascotNote ? 'note-visible' : ''}}">{{mascotMessage}}</view>
+          <image class="mascot-trail {{state === 'working' ? 'trail-visible' : ''}}" src="/assets/mascot-trail.png" mode="aspectFit" />
+          <image class="mascot-image {{state === 'after' ? 'celebrate' : ''}}" src="{{mascotFrame}}" mode="aspectFit" />
+        </view>
+      </view>
+      <view class="journey-labels">
+        <view>上班 <text>{{settings.start}}</text></view>
+        <view class="progress-readout">当前 <text>{{progressPercent}}%</text></view>
+        <view>下班 <text>{{settings.end}}</text></view>
+      </view>
+    </view>
+
+    <view class="footnote">系统按当月排班自动计算工作天数，收入为实时估算。</view>
+  </view>
+
+  <view class="modal-backdrop" wx:if="{{settingsVisible}}" bindtap="closeSettings">
+    <view class="settings-panel" catchtap="stopPropagation">
+      <view class="settings-head">
+        <text class="settings-title">工作设置</text>
+        <button class="close-button" bindtap="closeSettings">×</button>
+      </view>
+
+      <view class="field">
+        <text class="label">税前月薪</text>
+        <view class="salary-input"><text>¥</text><input type="digit" value="{{draft.salary}}" bindinput="onSalaryInput" /></view>
+      </view>
+
+      <view class="time-row">
+        <view class="field time-field">
+          <text class="label">上班时间</text>
+          <picker mode="time" value="{{draft.start}}" data-key="start" bindchange="onTimeChange">
+            <view class="picker-value">{{draft.start}}</view>
+          </picker>
+        </view>
+        <view class="field time-field">
+          <text class="label">下班时间</text>
+          <picker mode="time" value="{{draft.end}}" data-key="end" bindchange="onTimeChange">
+            <view class="picker-value">{{draft.end}}</view>
+          </picker>
+        </view>
+      </view>
+
+      <view class="field">
+        <text class="label">排班方式</text>
+        <picker range="{{scheduleLabels}}" value="{{draftScheduleIndex}}" bindchange="onScheduleChange">
+          <view class="picker-value picker-arrow">{{scheduleLabels[draftScheduleIndex]}}</view>
+        </picker>
+      </view>
+
+      <view class="rates">
+        <view><text>本月工作天数</text><text>{{stats.workdays}} 天</text></view>
+        <view><text>每小时</text><text>{{stats.hourRate}}</text></view>
+        <view><text>每分钟</text><text>{{stats.minuteRate}}</text></view>
+        <view><text>每秒</text><text>¥{{stats.secondRate}}</text></view>
+        <view><text>今日目标</text><text>{{stats.dayRate}}</text></view>
+      </view>
+
+      <button class="save-button" bindtap="saveSettings">保存设置</button>
+    </view>
+  </view>
+</view>

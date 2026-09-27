@@ -37,3 +37,13 @@ python -m http.server 4173
 - `extract-gallop-frames.py`、`extract-run-frames.py`：从原始图片条提取动画帧的辅助脚本；运行它们需要 Pillow、NumPy 和 OpenCV。
 
 页面插画和摆件包含 AI 生成素材。
+
+## 微信小程序
+
+仓库同时提供原生微信小程序版本，源码位于 `miniprogram/`。
+
+1. 打开微信开发者工具，选择“导入项目”。
+2. 项目目录选择本仓库根目录（工具会读取 `project.config.json`）。
+3. 导入后确认项目 AppID 与你的小程序一致；上传或发布前也请核对 `project.config.json` 中的 AppID。
+
+小程序无需后端和服务器域名，设置保存在微信本地存储中。
